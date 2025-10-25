@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
-from template_rooms_pkg.configuration.addonconfig import CustomAddonConfig
-from template_rooms_pkg.configuration.baseconfig import BaseAddonConfig
+from qdrant_rooms_pkg.configuration.addonconfig import CustomAddonConfig
+from qdrant_rooms_pkg.configuration.baseconfig import BaseAddonConfig
 
 
 class TestBaseAddonConfig:

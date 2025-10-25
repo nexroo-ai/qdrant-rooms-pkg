@@ -1,7 +1,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
-from template_rooms_pkg.tools.base import ToolRegistry
+from qdrant_rooms_pkg.tools.base import ToolRegistry
 
 
 class TestToolRegistry:
