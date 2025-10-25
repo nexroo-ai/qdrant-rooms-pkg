@@ -2,14 +2,14 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from template_rooms_pkg.addon import TemplateRoomsAddon
+from qdrant_rooms_pkg.addon import QdrantRoomsAddon
 
 
-class TestTemplateRoomsAddon:
+class TestQdrantRoomsAddon:
     def test_addon_initialization(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
-        assert addon.type == "Unknown"
+        assert addon.type == "storage"
         assert addon.modules == ["actions", "configuration", "memory", "services", "storage", "tools", "utils"]
         assert addon.config == {}
         assert addon.credentials is not None
@@ -18,18 +18,18 @@ class TestTemplateRoomsAddon:
         assert addon.addon_id is None
 
     def test_logger_property(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
         logger = addon.logger
 
         assert hasattr(logger, 'debug')
         assert hasattr(logger, 'info')
         assert hasattr(logger, 'warning')
         assert hasattr(logger, 'error')
-        assert logger.addon_type == "Unknown"
+        assert logger.addon_type == "storage"
 
 
     def test_load_tools(self, sample_tools, sample_tool_descriptions):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
         with patch.object(addon.tool_registry, 'register_tools') as mock_register, \
              patch.object(addon.tool_registry, 'get_tools_for_action', return_value={"tool1": {}, "tool2": {}}):
@@ -39,7 +39,7 @@ class TestTemplateRoomsAddon:
             mock_register.assert_called_once_with(sample_tools, sample_tool_descriptions, None)
 
     def test_get_tools(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
         expected_tools = {"tool1": {"name": "tool1"}, "tool2": {"name": "tool2"}}
 
         with patch.object(addon.tool_registry, 'get_tools_for_action', return_value=expected_tools):
@@ -48,7 +48,7 @@ class TestTemplateRoomsAddon:
             assert result == expected_tools
 
     def test_clear_tools(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
         with patch.object(addon.tool_registry, 'clear') as mock_clear:
             addon.clearTools()
@@ -56,7 +56,7 @@ class TestTemplateRoomsAddon:
             mock_clear.assert_called_once()
 
     def test_set_observer_callback(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
         callback = Mock()
         addon_id = "test_addon"
 
@@ -66,7 +66,7 @@ class TestTemplateRoomsAddon:
         assert addon.addon_id == addon_id
 
     def test_example_action(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
         result = addon.example("param1_value", "param2_value")
 
@@ -75,9 +75,9 @@ class TestTemplateRoomsAddon:
         assert result.output.data["processed"] == "param1_value- processed -"
 
     def test_load_addon_config_success(self, sample_config):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
-        with patch('template_rooms_pkg.configuration.CustomAddonConfig') as MockConfig:
+        with patch('qdrant_rooms_pkg.configuration.CustomAddonConfig') as MockConfig:
             mock_config_instance = Mock()
             MockConfig.return_value = mock_config_instance
 
@@ -88,15 +88,15 @@ class TestTemplateRoomsAddon:
             assert result is True
 
     def test_load_addon_config_failure(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
-        with patch('template_rooms_pkg.configuration.CustomAddonConfig', side_effect=Exception("Config error")):
+        with patch('qdrant_rooms_pkg.configuration.CustomAddonConfig', side_effect=Exception("Config error")):
             result = addon.loadAddonConfig({})
 
             assert result is False
 
     def test_load_credentials_success(self, sample_credentials):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
         with patch.object(addon.credentials, 'store_multiple') as mock_store:
             result = addon.loadCredentials(**sample_credentials)
@@ -105,7 +105,7 @@ class TestTemplateRoomsAddon:
             assert result is True
 
     def test_load_credentials_with_config_validation(self, sample_credentials):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
         mock_config = Mock()
         mock_config.secrets = {"API_KEY": "required", "DATABASE_URL": "required"}
         addon.config = mock_config
@@ -117,7 +117,7 @@ class TestTemplateRoomsAddon:
             assert result is True
 
     def test_load_credentials_missing_required_secrets(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
         mock_config = Mock()
         mock_config.secrets = {"REQUIRED_SECRET": "required", "ANOTHER_SECRET": "required"}
         addon.config = mock_config
@@ -127,7 +127,7 @@ class TestTemplateRoomsAddon:
         assert result is False
 
     def test_load_credentials_failure(self, sample_credentials):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
         with patch.object(addon.credentials, 'store_multiple', side_effect=Exception("Store error")):
             result = addon.loadCredentials(**sample_credentials)
@@ -135,7 +135,7 @@ class TestTemplateRoomsAddon:
             assert result is False
 
     def test_test_method_success(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
         with patch('importlib.import_module') as mock_import:
             mock_module = Mock()
@@ -148,7 +148,7 @@ class TestTemplateRoomsAddon:
             assert result is True
 
     def test_test_method_import_error(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
         with patch('importlib.import_module', side_effect=ImportError("Module not found")):
             result = addon.test()
@@ -156,7 +156,7 @@ class TestTemplateRoomsAddon:
             assert result is False
 
     def test_test_method_general_error(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
         with patch('importlib.import_module', side_effect=Exception("General error")):
             result = addon.test()
@@ -164,7 +164,7 @@ class TestTemplateRoomsAddon:
             assert result is False
 
     def test_test_method_component_skip_pydantic(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
         with patch('importlib.import_module') as mock_import:
             from pydantic import BaseModel
@@ -182,7 +182,7 @@ class TestTemplateRoomsAddon:
             assert result is True
 
     def test_test_method_component_skip_known_models(self):
-        addon = TemplateRoomsAddon()
+        addon = QdrantRoomsAddon()
 
         with patch('importlib.import_module') as mock_import:
             mock_module = Mock()
