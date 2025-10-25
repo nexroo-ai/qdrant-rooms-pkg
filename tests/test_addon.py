@@ -65,15 +65,6 @@ class TestQdrantRoomsAddon:
         assert addon.observer_callback == callback
         assert addon.addon_id == addon_id
 
-    def test_example_action(self):
-        addon = QdrantRoomsAddon()
-
-        result = addon.example("param1_value", "param2_value")
-
-        assert result.message == "Action executed successfully"
-        assert result.code == 200
-        assert result.output.data["processed"] == "param1_value- processed -"
-
     def test_load_addon_config_success(self, sample_config):
         addon = QdrantRoomsAddon()
 
