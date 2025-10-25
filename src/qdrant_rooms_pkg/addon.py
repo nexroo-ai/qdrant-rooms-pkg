@@ -2,19 +2,22 @@ import importlib
 
 from loguru import logger
 
-from .actions.example import example
+from .actions.create_collection import create_collection
+from .actions.delete_collection import delete_collection
+from .actions.search_points import search_points
+from .actions.upsert_points import upsert_points
 from .services.credentials import CredentialsRegistry
 from .tools.base import ToolRegistry
 
 
-class TemplateRoomsAddon:
+class QdrantRoomsAddon:
     """
-    Template Rooms Package Addon Class
+    Qdrant Rooms Package Addon Class
 
-    This class provides access to all template rooms package functionality
+    This class provides access to Qdrant vector database functionality
     and can be instantiated by external programs using this package.
     """
-    type = "Unknown"
+    type = "storage"
 
     def __init__(self):
         self.modules = ["actions", "configuration", "memory", "services", "storage", "tools", "utils"]
@@ -64,8 +67,17 @@ class TemplateRoomsAddon:
         self.observer_callback = callback
         self.addon_id = addon_id
 
-    def example(self, param1: str, param2: str) -> dict:
-        return example(self.config, param1=param1, param2=param2)
+    def create_collection(self, collection_name: str, vector_size: int, distance: str = "Cosine") -> dict:
+        return create_collection(self.config, collection_name=collection_name, vector_size=vector_size, distance=distance)
+
+    def upsert_points(self, collection_name: str, points: list) -> dict:
+        return upsert_points(self.config, collection_name=collection_name, points=points)
+
+    def search_points(self, collection_name: str, query_vector: list, limit: int = 5, score_threshold: float = None) -> dict:
+        return search_points(self.config, collection_name=collection_name, query_vector=query_vector, limit=limit, score_threshold=score_threshold)
+
+    def delete_collection(self, collection_name: str) -> dict:
+        return delete_collection(self.config, collection_name=collection_name)
 
     def test(self) -> bool:
         """
@@ -76,12 +88,12 @@ class TemplateRoomsAddon:
         Returns:
             bool: True if test passes, False otherwise
         """
-        self.logger.info("Running template-rooms-pkg test...")
+        self.logger.info("Running qdrant-rooms-pkg test...")
 
         total_components = 0
         for module_name in self.modules:
             try:
-                module = importlib.import_module(f"template_rooms_pkg.{module_name}")
+                module = importlib.import_module(f"qdrant_rooms_pkg.{module_name}")
                 components = getattr(module, '__all__', [])
                 component_count = len(components)
                 total_components += component_count
@@ -123,7 +135,7 @@ class TemplateRoomsAddon:
             except Exception as e:
                 self.logger.error(f"Error testing {module_name}: {e}")
                 return False
-        self.logger.info("Template rooms package test completed successfully!")
+        self.logger.info("Qdrant rooms package test completed successfully!")
         self.logger.info(f"Total components loaded: {total_components} across {len(self.modules)} modules")
         return True
 
@@ -138,7 +150,7 @@ class TemplateRoomsAddon:
             bool: True if configuration is loaded successfully, False otherwise
         """
         try:
-            from template_rooms_pkg.configuration import CustomAddonConfig
+            from qdrant_rooms_pkg.configuration import CustomAddonConfig
             self.config = CustomAddonConfig(**addon_config)
             self.logger.info(f"Addon configuration loaded successfully: {self.config}")
             return True

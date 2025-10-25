@@ -3,8 +3,8 @@ from typing import Optional
 from loguru import logger
 from pydantic import BaseModel
 
-from template_rooms_pkg.configuration import CustomAddonConfig
-from template_rooms_pkg.services.credentials import CredentialsRegistry
+from qdrant_rooms_pkg.configuration import CustomAddonConfig
+from qdrant_rooms_pkg.services.credentials import CredentialsRegistry
 
 from .base import ActionResponse, OutputBase, TokensSchema
 

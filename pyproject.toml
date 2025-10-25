@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "template-rooms-pkg"
-version = "1.0.0"
-description = "Template rooms package for AI rooms script"
+name = "qdrant-rooms-pkg"
+version = "1.0.1"
+description = "Qdrant vector database rooms package for AI rooms script"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -24,6 +24,7 @@ requires-python = ">=3.9"
 dependencies = [
     "loguru>=0.7.0",
     "pydantic>=2.0.0",
+    "qdrant-client>=1.15.1",
 ]
 
 [tool.setuptools.packages.find]
@@ -48,8 +49,8 @@ pytest-mock = "^3.14.1"
 pytest-asyncio = "^1.1.0"
 
 [project.urls]
-Homepage = "https://github.com/synvex/template-rooms-pkg"
-Repository = "https://github.com/synvex/template-rooms-pkg"
+Homepage = "https://github.com/synvex/qdrant-rooms-pkg"
+Repository = "https://github.com/synvex/qdrant-rooms-pkg"
 
 [tool.ruff]
 target-version = "py39"
@@ -91,7 +92,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["src/template_rooms_pkg"]
+source = ["src/qdrant_rooms_pkg"]
 omit = [
     "*/tests/*",
     "*/__pycache__/*",
