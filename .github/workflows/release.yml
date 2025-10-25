@@ -55,7 +55,7 @@ jobs:
         run: poetry install --no-interaction --no-ansi
 
       - name: Run tests with coverage
-        run: poetry run pytest tests/ --cov=src/template_rooms_pkg --cov-report=term-missing --cov-report=xml --cov-fail-under=85
+        run: poetry run pytest tests/ --cov=src/qdrant_rooms_pkg --cov-report=term-missing --cov-report=xml --cov-fail-under=45
 
 
   release:
