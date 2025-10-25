@@ -1,5 +1,6 @@
 import pytest
 from pydantic import ValidationError
+
 from qdrant_rooms_pkg.configuration.addonconfig import CustomAddonConfig
 from qdrant_rooms_pkg.configuration.baseconfig import BaseAddonConfig
 
@@ -35,74 +36,75 @@ class TestBaseAddonConfig:
 
 
 class TestCustomAddonConfig:
-    def test_custom_config_creation_success(self):
+    def test_custom_config_creation_with_url(self):
         config = CustomAddonConfig(
-            id="test_db_addon_id",
-            name="test_db_addon",
-            description="Test database addon",
-            host="localhost",
-            database="testdb",
-            secrets={"db_password": "secret", "db_user": "user"}
+            id="test_qdrant_addon_id",
+            type="storage",
+            name="test_qdrant_addon",
+            description="Test Qdrant addon",
+            url="http://localhost:6333",
+            secrets={}
         )
 
-        assert config.id == "test_db_addon_id"
-        assert config.name == "test_db_addon"
-        assert config.type == "database"
+        assert config.id == "test_qdrant_addon_id"
+        assert config.name == "test_qdrant_addon"
+        assert config.type == "storage"
+        assert config.url == "http://localhost:6333"
+        assert config.port == 6333
+        assert config.prefer_grpc is False
+        assert config.timeout == 60
+
+    def test_custom_config_creation_with_host(self):
+        config = CustomAddonConfig(
+            id="test_qdrant_addon_id",
+            type="storage",
+            name="test_qdrant_addon",
+            description="Test Qdrant addon",
+            host="localhost",
+            port=6333,
+            secrets={}
+        )
+
         assert config.host == "localhost"
-        assert config.database == "testdb"
-        assert config.port == 5432
+        assert config.port == 6333
+        assert config.url is None
 
-    def test_custom_config_with_custom_port(self):
+    def test_custom_config_with_grpc(self):
         config = CustomAddonConfig(
-            id="test_db_addon_id",
-            name="test_db_addon",
-            description="Test database addon",
+            id="test_qdrant_addon_id",
+            type="storage",
+            name="test_qdrant_addon",
+            description="Test Qdrant addon",
             host="localhost",
-            database="testdb",
-            port=3306,
-            secrets={"db_password": "secret", "db_user": "user"}
+            prefer_grpc=True,
+            grpc_port=6334,
+            secrets={}
         )
 
-        assert config.port == 3306
+        assert config.prefer_grpc is True
+        assert config.grpc_port == 6334
 
-    def test_custom_config_missing_db_password(self):
-        with pytest.raises(ValidationError, match="Missing database secrets"):
-            CustomAddonConfig(
-                id="test_db_addon_id",
-                name="test_db_addon",
-                description="Test database addon",
-                host="localhost",
-                database="testdb",
-                secrets={"db_user": "user"}
-            )
+    def test_custom_config_with_api_key(self):
+        config = CustomAddonConfig(
+            id="test_qdrant_addon_id",
+            type="storage",
+            name="test_qdrant_addon",
+            description="Test Qdrant addon",
+            url="https://example.cloud.qdrant.io:6333",
+            secrets={"qdrant_api_key": "test_key"}
+        )
 
-    def test_custom_config_missing_db_user(self):
-        with pytest.raises(ValidationError, match="Missing database secrets"):
-            CustomAddonConfig(
-                id="test_db_addon_id",
-                name="test_db_addon",
-                description="Test database addon",
-                host="localhost",
-                database="testdb",
-                secrets={"db_password": "secret"}
-            )
+        assert config.secrets == {"qdrant_api_key": "test_key"}
 
-    def test_custom_config_missing_both_secrets(self):
-        with pytest.raises(ValidationError, match="Missing database secrets"):
-            CustomAddonConfig(
-                id="test_db_addon_id",
-                name="test_db_addon",
-                description="Test database addon",
-                host="localhost",
-                database="testdb",
-                secrets={}
-            )
+    def test_custom_config_defaults(self):
+        config = CustomAddonConfig(
+            id="test_qdrant_addon_id",
+            type="storage",
+            name="test_qdrant_addon",
+            secrets={}
+        )
 
-    def test_custom_config_missing_required_fields(self):
-        with pytest.raises(ValidationError):
-            CustomAddonConfig(
-                id="test_db_addon_id",
-                name="test_db_addon",
-                description="Test database addon",
-                secrets={"db_password": "secret", "db_user": "user"}
-            )
+        assert config.port == 6333
+        assert config.grpc_port == 6334
+        assert config.prefer_grpc is False
+        assert config.timeout == 60
