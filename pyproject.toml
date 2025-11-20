@@ -115,4 +115,4 @@ exclude_lines = [
 ]
 show_missing = true
 skip_covered = false
-fail_under = 45
+fail_under = 85

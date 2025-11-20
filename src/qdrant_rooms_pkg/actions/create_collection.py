@@ -13,6 +13,7 @@ class ActionInput(BaseModel):
     collection_name: str = Field(..., description="Name of the collection to create")
     vector_size: int = Field(..., description="Size of the vectors to store")
     distance: str = Field("Cosine", description="Distance metric: Cosine, Euclid, or Dot")
+    if_exists: str = Field("error", description="Action if collection exists: 'error', 'skip', or 'recreate'")
 
 
 class ActionOutput(OutputBase):
@@ -25,9 +26,10 @@ def create_collection(
     config: CustomAddonConfig,
     collection_name: str,
     vector_size: int,
-    distance: str = "Cosine"
+    distance: str = "Cosine",
+    if_exists: str = "error"
 ) -> ActionResponse:
-    logger.debug(f"Creating collection: {collection_name} with vector size: {vector_size}, distance: {distance}")
+    logger.debug(f"Creating collection: {collection_name} with vector size: {vector_size}, distance: {distance}, if_exists: {if_exists}")
 
     try:
         client_params = {}
@@ -57,24 +59,80 @@ def create_collection(
 
         distance_metric = distance_map.get(distance, Distance.COSINE)
 
+        collection_exists = False
+        try:
+            collections = client.get_collections().collections
+            collection_exists = any(c.name == collection_name for c in collections)
+        except Exception as e:
+            logger.warning(f"Could not check if collection exists: {e}")
+
+        if collection_exists:
+            if if_exists == "skip":
+                logger.info(f"Collection '{collection_name}' already exists, skipping creation")
+                tokens = TokensSchema(stepAmount=0, totalCurrentAmount=0)
+                output = ActionOutput(
+                    collection_name=collection_name,
+                    success=True,
+                    message=f"Collection '{collection_name}' already exists (skipped)"
+                )
+                return ActionResponse(
+                    output=output,
+                    tokens=tokens,
+                    message="Collection already exists, skipped creation",
+                    code=200
+                )
+            elif if_exists == "recreate":
+                logger.info(f"Collection '{collection_name}' already exists, recreating")
+                client.delete_collection(collection_name=collection_name)
+                logger.info(f"Deleted existing collection '{collection_name}'")
+            elif if_exists == "error":
+                logger.error(f"Collection '{collection_name}' already exists")
+                tokens = TokensSchema(stepAmount=0, totalCurrentAmount=0)
+                output = ActionOutput(
+                    collection_name=collection_name,
+                    success=False,
+                    message=f"Collection '{collection_name}' already exists"
+                )
+                return ActionResponse(
+                    output=output,
+                    tokens=tokens,
+                    message=f"Collection '{collection_name}' already exists",
+                    code=409
+                )
+            else:
+                logger.warning(f"Unknown if_exists value: {if_exists}, defaulting to 'error'")
+                tokens = TokensSchema(stepAmount=0, totalCurrentAmount=0)
+                output = ActionOutput(
+                    collection_name=collection_name,
+                    success=False,
+                    message=f"Collection '{collection_name}' already exists"
+                )
+                return ActionResponse(
+                    output=output,
+                    tokens=tokens,
+                    message=f"Collection '{collection_name}' already exists",
+                    code=409
+                )
+
         client.create_collection(
             collection_name=collection_name,
             vectors_config=VectorParams(size=vector_size, distance=distance_metric)
         )
 
-        logger.info(f"Collection '{collection_name}' created successfully")
+        action_taken = "recreated" if (collection_exists and if_exists == "recreate") else "created"
+        logger.info(f"Collection '{collection_name}' {action_taken} successfully")
 
         tokens = TokensSchema(stepAmount=0, totalCurrentAmount=0)
         output = ActionOutput(
             collection_name=collection_name,
             success=True,
-            message=f"Collection '{collection_name}' created successfully"
+            message=f"Collection '{collection_name}' {action_taken} successfully"
         )
 
         return ActionResponse(
             output=output,
             tokens=tokens,
-            message="Collection created successfully",
+            message=f"Collection {action_taken} successfully",
             code=200
         )
 
@@ -83,7 +141,7 @@ def create_collection(
 
         tokens = TokensSchema(stepAmount=0, totalCurrentAmount=0)
         output = ActionOutput(
-            collection_name=collection_name,
+            collection_name=collection_name or "unknown",
             success=False,
             message=f"Error: {str(e)}"
         )

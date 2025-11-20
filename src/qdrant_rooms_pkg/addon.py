@@ -67,8 +67,8 @@ class QdrantRoomsAddon:
         self.observer_callback = callback
         self.addon_id = addon_id
 
-    def create_collection(self, collection_name: str, vector_size: int, distance: str = "Cosine") -> dict:
-        return create_collection(self.config, collection_name=collection_name, vector_size=vector_size, distance=distance)
+    def create_collection(self, collection_name: str, vector_size: int, distance: str = "Cosine", if_exists: str = "error") -> dict:
+        return create_collection(self.config, collection_name=collection_name, vector_size=vector_size, distance=distance, if_exists=if_exists)
 
     def upsert_points(self, collection_name: str, points: list) -> dict:
         return upsert_points(self.config, collection_name=collection_name, points=points)
